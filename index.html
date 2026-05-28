@@ -40,20 +40,41 @@
 
 </div>
 
+<style>
+    body { 
+        margin: 0; 
+        padding: 0; 
+        background-color: white;
+        overflow-x: hidden; /* Only hide horizontal clipping */
+    }
+    .component-link {
+        transition: transform 0.3s ease, filter 0.3s ease;
+        cursor: pointer;
+    }
+    .component-link:hover {
+        transform: scale(1.03);
+        filter: drop-shadow(0px 10px 25px rgba(0,0,0,0.2));
+    }
+</style>
+
 <script>
     function autoScaleIndex() {
         const wrapper = document.getElementById('scaleWrapper');
         const scaleRatio = window.innerWidth / 1920;
         
-        // Dynamically scale the container matching the current screen width
+        // Scale the canvas container
         wrapper.style.transform = `scale(${scaleRatio})`;
         
-        // Match the container layout height cleanly
-        document.body.style.height = `${1080 * scaleRatio}px`;
+        // DYNAMIC HEIGHT: This forces the page to be exactly as long as its contents need on mobile
+        const calculatedHeight = 1080 * scaleRatio;
+        wrapper.style.height = `${calculatedHeight}px`;
+        document.body.style.height = `${calculatedHeight}px`;
     }
 
+    // Run instantly on load and device orientation/resize adjustments
     window.addEventListener('load', autoScaleIndex);
     window.addEventListener('resize', autoScaleIndex);
+    autoScaleIndex(); // Immediate initialization call
 </script>
 </body>
 </html>

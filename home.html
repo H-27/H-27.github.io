@@ -187,20 +187,25 @@
 
   // 2. Dynamic scaling script for the long gallery canvas
   function autoScaleHome() {
-      const wrapper = document.getElementById('scaleWrapper');
-      const scaleRatio = window.innerWidth / 1920;
+    const wrapper = document.getElementById('scaleWrapper');
+    // Detects the exact width scaling threshold of the device glass
+    const scaleRatio = window.innerWidth / 1920;
       
-      wrapper.style.transform = `scale(${scaleRatio})`;
+    wrapper.style.transform = `scale(${scaleRatio})`;
       
-      // Corrects the calculated layout height footprint so that mobile scroll bars work flawlessly
-      wrapper.style.height = `${4113 * scaleRatio}px`;
-      document.body.style.height = `${4113 * scaleRatio}px`;
-  }
+    // Calculate dynamic canvas depth footprint
+    const calculatedHeight = 4113 * scaleRatio;
+    wrapper.style.height = `${calculatedHeight}px`;
+    document.body.style.height = `${calculatedHeight}px`;
+    }
 
   window.addEventListener('load', autoScaleHome);
   window.addEventListener('resize', autoScaleHome);
-
-  // Initial gallery call on page load
+  
+  // Triggers immediate viewport calculations upon arrival
+  autoScaleHome();
+  
+  // Your existing loadRandomImages() call remains here...
   loadRandomImages();
 </script>
 </body>
