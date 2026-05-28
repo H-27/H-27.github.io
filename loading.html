@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>web_2</title>
+    <style>
+        /* Force the inner page to match the absolute full dimensions of the browser window */
+        html, body { 
+            margin: 0; 
+            padding: 0; 
+            background: white; 
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Fluid full-viewport wrapper */
+        .fullscreen-bg {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Responsive Side Gradients - taking up exactly half the width dynamically */
+        .gradient-left {
+            width: 55vw;
+            height: 110vh;
+            left: -5vw;
+            top: -5vh;
+            position: absolute;
+            background: linear-gradient(90deg, #3A7065 35%, #A9A73E 100%);
+        }
+
+        .gradient-right {
+            width: 55vw;
+            height: 110vh;
+            right: -5vw;
+            bottom: -5vh;
+            position: absolute;
+            transform: rotate(180deg);
+            transform-origin: center;
+            background: linear-gradient(90deg, #3A7065 35%, #A9A73E 100%);
+        }
+
+        /* Big background dinosaur scaled up to fill the whole screen canvas safely */
+        #backgroundImageLoop {
+            position: absolute;
+            left: 50%;
+            top: 48%;
+            transform: translate(-50%, -50%);
+            width: auto;
+            height: 90vh; /* Takes up 90% of the screen height regardless of device */
+            max-width: 95vw;
+            object-fit: contain;
+            z-index: 5;
+        }
+
+        /* Flashing 'Es Lädt' text layered perfectly in the center */
+        #loadingImage {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            width: 25vw; /* Scales proportionally with screen width */
+            max-width: 400px;
+            min-width: 280px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="fullscreen-bg">
+  <div class="gradient-left"></div>
+  <div class="gradient-right"></div>
+
+  <img id="backgroundImageLoop" src="assets/images/Komponente_8.png" alt="Background Graphic" />
+  
+  <img id="loadingImage" src="assets/images/web2_loading2 (1).png" alt="Loading..." />
+</div>
+
+<script>
+  const loadingImage = document.getElementById('loadingImage');
+  const img1 = 'assets/images/web2_loading2 (1).png';
+  const img2 = 'assets/images/web2_loading2 (2).png';
+  
+  let currentImageIsOne = true;
+  
+  // Toggles text states every 500ms
+  setInterval(() => {
+    loadingImage.src = currentImageIsOne ? img2 : img1;
+    currentImageIsOne = !currentImageIsOne;
+  }, 500);
+</script>
+</body>
+</html>
