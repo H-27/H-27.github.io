@@ -10,38 +10,54 @@
             padding: 0; 
             background: white; 
             overflow: hidden;
+            width: 100vw;
+            height: 100vh;
         }
 
-        /* 1920x1080 Bounding container matching index asset structures */
+        /* The background container scales to 100% of whatever device screen size is active */
         .fullscreen-bg {
-            width: 1920px;
-            height: 1080px;
+            width: 100vw;
+            height: 100vh;
             position: relative;
             overflow: hidden;
         }
 
-        /* Side Gradients adapted to match the fixed resolution coordinates */
+        /* Gradients now use viewport percentages so they dynamically stretch vertically */
         .gradient-left {
-            width: 1056px; /* 55% of 1920px */
-            height: 1188px; /* 110% of 1080px */
-            left: -96px;
-            top: -54px;
+            width: 55vw;
+            height: 110vh;
+            left: -5vw;
+            top: -5vh;
             position: absolute;
             background: linear-gradient(90deg, #3A7065 35%, #A9A73E 100%);
         }
 
         .gradient-right {
-            width: 1056px;
-            height: 1188px;
-            right: -96px;
-            bottom: -54px;
+            width: 55vw;
+            height: 110vh;
+            right: -5vw;
+            bottom: -5vh;
             position: absolute;
             transform: rotate(180deg);
             transform-origin: center;
             background: linear-gradient(90deg, #3A7065 35%, #A9A73E 100%);
         }
 
-        /* Forces both graphics to pin cleanly inside the canvas layout */
+        /* This wrapper holds your central assets. It is always pinned dead-center 
+           on the screen, regardless of whether the device is horizontal or vertical.
+        */
+        #centerAssetContainer {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 1920px;
+            height: 1080px;
+            /* Anchors the center point of the 1920x1080 canvas to the center of the phone screen */
+            transform-origin: center center; 
+            z-index: 10;
+            pointer-events: none;
+        }
+
         #backgroundImageLoop, #loadingImage {
             position: absolute;
             left: 0;
@@ -50,31 +66,18 @@
             height: 1080px;
             object-fit: fill;
         }
-
-        /* Layers the background asset beneath the flashing text */
-        #backgroundImageLoop {
-            z-index: 5;
-        }
-
-        /* Layers the text asset perfectly on top */
-        #loadingImage {
-            z-index: 10;
-        }
     </style>
 </head>
 <body>
 
-<div id="scaleWrapper" style="transform-origin: top left; width: 1920px;">
+<div class="fullscreen-bg">
+    <div class="gradient-left"></div>
+    <div class="gradient-right"></div>
 
-    <div class="fullscreen-bg">
-      <div class="gradient-left"></div>
-      <div class="gradient-right"></div>
-
-      <img id="backgroundImageLoop" src="assets/images/Komponente_8.png" alt="Background Graphic" />
-      
-      <img id="loadingImage" src="assets/images/web2_loading2 (1).png" alt="Loading..." />
+    <div id="centerAssetContainer">
+        <img id="backgroundImageLoop" src="assets/images/Komponente_8.png" alt="Background Graphic" />
+        <img id="loadingImage" src="assets/images/web2_loading2 (1).png" alt="Loading..." />
     </div>
-
 </div>
 
 <script>
@@ -84,23 +87,31 @@
   
   let currentImageIsOne = true;
   
-  // Flash text loop every 500ms
   setInterval(() => {
     loadingImage.src = currentImageIsOne ? img2 : img1;
     currentImageIsOne = !currentImageIsOne;
   }, 500);
 
-  // 2. Scale handler targeting the loading layout frame
-  function autoScaleLoading() {
-      const wrapper = document.getElementById('scaleWrapper');
-      const scaleRatio = window.innerWidth / 1920;
+  // Responsive logic built for ratio shifts
+  function adjustLoadingScale() {
+      const target = document.getElementById('centerAssetContainer');
       
-      wrapper.style.transform = `scale(${scaleRatio})`;
-      document.body.style.height = `${1080 * scaleRatio}px`;
+      // Calculate individual scale paths for width and height
+      const scaleX = window.innerWidth / 1920;
+      const scaleY = window.innerHeight / 1080;
+      
+      // CHOOSE THE SAFEST FIT: 
+      // On desktop, it scales normally. On portrait mobile, it uses the width limit 
+      // so your graphics don't get squished or distorted out of proportion.
+      const optimalScale = Math.min(scaleX, scaleY);
+      
+      // Centers the scaled container perfectly inside the screen viewport mask
+      target.style.transform = `translate(-50%, -50%) scale(${optimalScale})`;
   }
 
-  window.addEventListener('load', autoScaleLoading);
-  window.addEventListener('resize', autoScaleLoading);
+  window.addEventListener('load', adjustLoadingScale);
+  window.addEventListener('resize', adjustLoadingScale);
+  adjustLoadingScale();
 </script>
 </body>
 </html>
