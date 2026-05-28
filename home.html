@@ -7,7 +7,7 @@
     <style>
         body { margin: 0; padding: 0; }
         
-        /* Fullscreen Iframe Loading Overlay */
+        /* Opaque solid mask that completely hides the gallery underneath */
         #loadingOverlay {
             position: fixed;
             top: 0;
@@ -16,7 +16,7 @@
             height: 100vh;
             z-index: 9999;
             border: none;
-            background: white;
+            background: white; /* Kept solid white to mask the background */
             transition: opacity 0.5s ease, visibility 0.5s;
         }
         #loadingOverlay.hidden {
@@ -69,7 +69,6 @@
   const downloadBtn = document.getElementById('downloadBtn');
   const loadingOverlay = document.getElementById('loadingOverlay');
 
-  // Trigger file selections
   uploadBtn.addEventListener('click', () => { fileUploadInput.click(); });
 
   fileUploadInput.addEventListener('change', async (event) => {
@@ -116,7 +115,6 @@
     }
   });
 
-  // FETCH AND DISPLAY RANDOM IMAGES ON LOAD
   async function loadRandomImages() {
     const galleryImages = document.querySelectorAll('.gallery-img');
     if (galleryImages.length === 0) return;
@@ -129,36 +127,24 @@
             headers: { 'X-Custom-Auth-Key': CUSTOM_API_KEY }
         });
 
-        if (!response.ok) {
-            alert("Backend returned error status: " + response.status);
-            throw new Error('Failed to fetch images');
-        }
-
+        if (!response.ok) throw new Error('Failed to fetch images');
         const imagesData = await response.json(); 
         
-        if (!imagesData || imagesData.length === 0) {
-            alert("Data received successfully, but the image array is empty: []");
-            return;
-        }
+        if (!imagesData || imagesData.length === 0) return;
 
-        // Direct stream mapping. No loops or rewrite rules needed for short-lived tempauth download links
         for (let i = 0; i < imagesData.length && i < galleryImages.length; i++) {
-            if (imagesData[i].downloadUrl) {
-                galleryImages[i].src = imagesData[i].downloadUrl;
-            } else if (imagesData[i].DownloadUrl) {
-                // Account for casing variance
-                galleryImages[i].src = imagesData[i].DownloadUrl;
+            const url = imagesData[i].downloadUrl || imagesData[i].DownloadUrl;
+            if (url) {
+                galleryImages[i].src = url;
             }
         }
     } catch (error) {
-        alert("CRITICAL ERROR: " + error.message);
+        console.error("Gallery Error:", error.message);
     } finally {
-        // Fade out overlay
         if (loadingOverlay) { loadingOverlay.classList.add('hidden'); }
     }
   }
 
-  // Trigger core sequence
   loadRandomImages();
 </script>
 </body>
