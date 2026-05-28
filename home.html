@@ -25,14 +25,18 @@
             pointer-events: none;
         }
 
-        /* Adds a subtle zoom effect when hovering over Komponente 8 */
-        .back-link {
+        /* Hover effects for interactive image components */
+        .back-link, #uploadBtn, #downloadBtn {
             transition: transform 0.3s ease, filter 0.3s ease;
             cursor: pointer;
         }
-        .back-link:hover {
+        .back-link:hover, #uploadBtn:hover, #downloadBtn:hover {
             transform: scale(1.04);
-            filter: drop-shadow(0px 10px 25px rgba(0,0,0,0.2));
+            filter: drop-shadow(0px 10px 25px rgba(0,0,0,0.25));
+        }
+        /* Active press effect for buttons */
+        #uploadBtn:active, #downloadBtn:active {
+            transform: scale(0.98);
         }
     </style>
 </head>
@@ -46,13 +50,13 @@
   <img style="width: 1338.57px; height: 246.48px; left: 273.71px; top: 102.52px; position: absolute" src="assets/images/Komponente_7.png" />
   <img style="width: 250px; height: auto; left: 835px; top: 377px; position: absolute" src="assets/images/2026.png" />
   
-  <div id="uploadBtn" style="width: 905px; height: 326px; left: 508px; top: 609px; position: absolute; background: #D83C08; box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.16) inset; border-radius: 88px; border: 1px white solid; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+  <div id="uploadBtn" style="width: 905px; height: 326px; left: 508px; top: 609px; position: absolute; background: #D83C08; box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.16) inset; border-radius: 88px; border: 1px white solid; display: flex; align-items: center; justify-content: center;">
     <img style="width: 529px; height: 203px" src="assets/images/Bilder%20Hochladen.png" />
   </div>
 
   <input type="file" id="fileUploadInput" multiple accept="image/*" style="display: none;" />
 
-  <div id="downloadBtn" style="width: 905px; height: 326px; left: 124px; top: 3641px; position: absolute; background: #D83C08; box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.16) inset; border-radius: 88px; border: 1px white solid; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+  <div id="downloadBtn" style="width: 905px; height: 326px; left: 124px; top: 3641px; position: absolute; background: #D83C08; box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.16) inset; border-radius: 88px; border: 1px white solid; display: flex; align-items: center; justify-content: center;">
     <img style="width: 625px; height: 202px" src="assets/images/Ordnerherunterladen.png" />
   </div>
 
@@ -81,11 +85,16 @@
   const downloadBtn = document.getElementById('downloadBtn');
   const loadingOverlay = document.getElementById('loadingOverlay');
 
+  // Trigger file selection window
   uploadBtn.addEventListener('click', () => { fileUploadInput.click(); });
 
+  // Handle Image Upload
   fileUploadInput.addEventListener('change', async (event) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
+
+    // Show loading screen during upload process
+    if (loadingOverlay) loadingOverlay.classList.remove('hidden');
 
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) { formData.append('files', files[i]); }
@@ -99,13 +108,22 @@
         });
         if (!response.ok) throw new Error('Upload failed');
         alert("Upload successful!");
-        loadRandomImages();
+        await loadRandomImages(); // Re-fetch gallery & hides screen inside this method
     } catch (error) {
         alert('Upload failed.');
-    } finally { fileUploadInput.value = ''; }
+        if (loadingOverlay) loadingOverlay.classList.add('hidden'); // Fallback hide
+    } finally { 
+        fileUploadInput.value = ''; 
+    }
   });
 
+  // Handle ZIP Generation and Download
   downloadBtn.addEventListener('click', async () => {
+    // 1. Instantly show the loading overlay while the backend works
+    if (loadingOverlay) {
+        loadingOverlay.classList.remove('hidden');
+    }
+
     try {
         const response = await fetch(`${API_BASE_URL}/download-all-images`, {
             method: 'GET',
@@ -113,6 +131,7 @@
             headers: { 'X-Custom-Auth-Key': CUSTOM_API_KEY }
         });
         if (!response.ok) throw new Error('Download failed');
+        
         const blob = await response.blob();
         const downloadUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -124,9 +143,15 @@
         window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
         alert('Download failed.');
+    } finally {
+        // 2. Hide the loading overlay immediately once the process finishes or fails
+        if (loadingOverlay) {
+            loadingOverlay.classList.add('hidden');
+        }
     }
   });
 
+  // Fetch Gallery Images from C# Backend
   async function loadRandomImages() {
     const galleryImages = document.querySelectorAll('.gallery-img');
     if (galleryImages.length === 0) return;
@@ -157,6 +182,7 @@
     }
   }
 
+  // Initial gallery call on page load
   loadRandomImages();
 </script>
 </body>
