@@ -66,6 +66,19 @@
             height: 1080px;
             object-fit: fill;
         }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            #centerAssetContainer {
+                width: 100vw !important;
+                height: 100vh !important;
+            }
+            #backgroundImageLoop, #loadingImage {
+                width: 100vw !important;
+                height: 100vh !important;
+                object-fit: contain !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -96,6 +109,11 @@
   function adjustLoadingScale() {
       const target = document.getElementById('centerAssetContainer');
       
+      if (window.innerWidth <= 768) {
+          target.style.transform = 'translate(-50%, -50%) scale(1)';
+          return;
+      }
+
       // Calculate individual scale paths for width and height
       const scaleX = window.innerWidth / 1920;
       const scaleY = window.innerHeight / 1080;
