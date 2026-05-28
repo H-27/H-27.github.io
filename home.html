@@ -1,319 +1,223 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Identity.Web;
-using Microsoft.Graph;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.DataProtection;
-using StackExchange.Redis;
-using System.Security.Claims;
-using System.Net.Http.Headers;
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>home</title>
+    <style>
+        /* Modern mobile viewports require containment at the root level to prevent clipping */
+        html {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden; /* Stops horizontal shaking */
+        }
+        
+        body { 
+            margin: 0; 
+            padding: 0; 
+            background-color: white; 
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden; /* Stops horizontal shaking */
+        }
+        
+        /* Opaque solid mask that completely hides the gallery underneath */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            border: none;
+            background: white; 
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
+        #loadingOverlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
 
-var builder = WebApplication.CreateBuilder(args);
+        /* Hover effects for interactive image components */
+        .back-link, #uploadBtn, #downloadBtn {
+            transition: transform 0.3s ease, filter 0.3s ease;
+            cursor: pointer;
+        }
+        .back-link:hover, #uploadBtn:hover, #downloadBtn:hover {
+            transform: scale(1.04);
+            filter: drop-shadow(0px 10px 25px rgba(0,0,0,0.25));
+        }
+        /* Active press effect for buttons */
+        #uploadBtn:active, #downloadBtn:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
 
-// 1. Fetch the raw connection string directly 
-var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
-ConfigurationOptions? redisConfig = null;
+    <iframe id="loadingOverlay" src="loading.html"></iframe>
 
-if (!string.IsNullOrEmpty(redisConnectionString))
-{
-    try
-    {
-        redisConfig = ConfigurationOptions.Parse(redisConnectionString);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"[CRITICAL] Redis String Parsing Failed: {ex.Message}");
-    }
-}
+    <div id="scaleWrapper" style="transform-origin: top left; width: 1920px; overflow: visible; position: relative;">
 
-// 2. Setup Distributed Token Cache with exception isolation
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.ConfigurationOptions = redisConfig; 
-    options.InstanceName = "TokenCache_";
-});
+        <div style="width: 1920px; height: 4113px; position: relative; background: white; overflow: hidden">
+            <div style="width: 1011.98px; height: 4376.05px; left: -46.48px; top: -92.02px; position: absolute; background: linear-gradient(90deg, #3A7065 35%, #A9A73E 100%)"></div>
+            <div style="width: 1011.98px; height: 4376.05px; left: 1966.48px; top: 4284.02px; position: absolute; transform: rotate(180deg); transform-origin: top left; background: linear-gradient(90deg, #3A7065 35%, #A9A73E 100%)"></div>
+            <img style="width: 1338.57px; height: 246.48px; left: 273.71px; top: 102.52px; position: absolute" src="assets/images/Komponente_7.png" />
+            <img style="width: 250px; height: auto; left: 835px; top: 377px; position: absolute" src="assets/images/2026.png" />
+            
+            <div id="uploadBtn" style="width: 905px; height: 326px; left: 508px; top: 609px; position: absolute; background: #D83C08; box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.16) inset; border-radius: 88px; border: 1px white solid; display: flex; align-items: center; justify-content: center;">
+                <img style="width: 529px; height: 203px" src="assets/images/Bilder%20Hochladen.png" />
+            </div>
 
-// 3. Configure Data Protection with a fallback catch block
-if (redisConfig != null)
-{
-    try 
-    {
-        var redis = ConnectionMultiplexer.Connect(redisConfig);
-        builder.Services.AddDataProtection()
-            .PersistKeysToStackExchangeRedis(redis, "DataProtection-Keys");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"[DATA PROTECTION ERROR] Redis connection failed: {ex.Message}");
-    }
-}
+            <input type="file" id="fileUploadInput" multiple accept="image/*" style="display: none;" />
 
-builder.Services.AddOpenApi();
+            <div id="downloadBtn" style="width: 905px; height: 326px; left: 124px; top: 3641px; position: absolute; background: #D83C08; box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.16) inset; border-radius: 88px; border: 1px white solid; display: flex; align-items: center; justify-content: center;">
+                <img style="width: 625px; height: 202px" src="assets/images/Ordnerherunterladen.png" />
+            </div>
 
-builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd")
-    .EnableTokenAcquisitionToCallDownstreamApi(new string[] { "Files.ReadWrite", "offline_access" })
-    .AddMicrosoftGraph(builder.Configuration.GetSection("MicrosoftGraph"))
-    .AddDistributedTokenCaches();
+            <img class="gallery-img" style="width: 975px; height: 653px; left: 53.66px; top: 1296.02px; position: absolute; transform: rotate(-11deg); transform-origin: top left; background: #eee; box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16); border: 1px #707070 solid; object-fit: cover;" />
+            <img class="gallery-img" style="width: 975px; height: 653px; left: 103.66px; top: 2405.79px; position: absolute; transform: rotate(-11deg); transform-origin: top left; background: #eee; box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16); border: 1px #707070 solid; object-fit: cover;" />
+            <img class="gallery-img" style="width: 664.42px; height: 444.99px; left: 547.57px; top: 2633.27px; position: absolute; transform: rotate(86deg); transform-origin: top left; background: #eee; box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16); border: 1px #707070 solid; object-fit: cover;" />
+            <img class="gallery-img" style="width: 664.42px; height: 444.99px; left: 770.08px; top: 2996.98px; position: absolute; transform: rotate(-9deg); transform-origin: top left; background: #eee; box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16); border: 1px #707070 solid; object-fit: cover;" />
+            <img class="gallery-img" style="width: 975px; height: 653px; left: 920.66px; top: 2182.71px; position: absolute; transform: rotate(9deg); transform-origin: top left; background: #eee; box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16); border: 1px #707070 solid; object-fit: cover;" />
+            <img class="gallery-img" style="width: 667.21px; height: 446.86px; left: 1101.49px; top: 1488.58px; position: absolute; transform: rotate(101deg); transform-origin: top left; background: #eee; box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16); border: 1px #707070 solid; object-fit: cover;" />
+            <img class="gallery-img" style="width: 667.21px; height: 446.86px; left: 1616.98px; top: 1061.36px; position: absolute; transform: rotate(75deg); transform-origin: top left; background: #eee; box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16); border: 1px #707070 solid; object-fit: cover;" />
+            <img class="gallery-img" style="width: 680px; height: 456px; left: 1736.56px; top: 2234.53px; position: absolute; transform: rotate(-174deg); transform-origin: top left; background: #eee; box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16); border: 1px #707070 solid; object-fit: cover;" />
+            <img class="gallery-img" style="width: 680px; height: 456px; left: 984.17px; top: 2271.33px; position: absolute; transform: rotate(164deg); transform-origin: top left; background: #eee; box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16); border: 1px #707070 solid; object-fit: cover;" />
+            
+            <a href="index.html" style="position: absolute; left: 1262px; top: 3539px; display: block; width: 485px; height: 491px; z-index: 10;" class="back-link">
+                <img style="width: 100%; height: 100%;" src="assets/images/Komponente_8.png" alt="Back to Index" />
+            </a>
+        </div>
 
-builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-{
-    options.Cookie.SameSite = SameSiteMode.None;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-});
+    </div>
 
-builder.Services.AddAuthorization();
+    <script>
+        const API_BASE_URL = 'https://personal-onedrive-backend.onrender.com';
+        const CUSTOM_API_KEY = 'OV52i_5c3k2ocNbm9oGkeg';
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("StrictStaticSite",
-        policy => {
-            var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
-            if (builder.Environment.IsDevelopment())
-            {
-                policy.SetIsOriginAllowed(_ => true)
-                      .AllowAnyMethod()
-                      .AllowAnyHeader()
-                      .AllowCredentials();
-            }
-            else
-            {
-                policy.WithOrigins(allowedOrigins)
-                      .AllowAnyMethod()
-                      .WithHeaders("X-Custom-Auth-Key", "X-Microsoft-Account-Id", "Content-Type", "Accept", "Authorization");
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileUploadInput = document.getElementById('fileUploadInput');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        uploadBtn.addEventListener('click', () => { fileUploadInput.click(); });
+
+        // Handle Image Upload
+        fileUploadInput.addEventListener('change', async (event) => {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            if (loadingOverlay) loadingOverlay.classList.remove('hidden');
+
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) { formData.append('files', files[i]); }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/upload-images`, {
+                    method: 'POST',
+                    headers: { 'X-Custom-Auth-Key': CUSTOM_API_KEY },
+                    body: formData
+                });
+                if (!response.ok) throw new Error('Upload failed');
+                alert("Upload successful!");
+                await loadRandomImages(); 
+            } catch (error) {
+                alert('Upload failed.');
+                if (loadingOverlay) loadingOverlay.classList.add('hidden'); 
+            } finally { 
+                fileUploadInput.value = ''; 
             }
         });
-});
 
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
-{
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownNetworks.Clear();
-    options.KnownProxies.Clear();
-});
+        // Handle ZIP Generation and Download
+        downloadBtn.addEventListener('click', async () => {
+            if (loadingOverlay) {
+                loadingOverlay.classList.remove('hidden');
+            }
 
-var app = builder.Build();
+            try {
+                const response = await fetch(`${API_BASE_URL}/download-all-images`, {
+                    method: 'GET',
+                    headers: { 'X-Custom-Auth-Key': CUSTOM_API_KEY }
+                });
+                if (!response.ok) throw new Error('Download failed');
+                
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = 'images.zip';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(downloadUrl);
+            } catch (error) {
+                alert('Download failed.');
+            } finally {
+                if (loadingOverlay) {
+                    loadingOverlay.classList.add('hidden');
+                }
+            }
+        });
 
-app.Use((context, next) =>
-{
-    context.Request.Scheme = "https";
-    return next();
-});
+        // Fetch Gallery Images from C# Backend
+        async function loadRandomImages() {
+            const galleryImages = document.querySelectorAll('.gallery-img');
+            
+            // 🛡️ Fail-safe tracker to ensure curtain drops no matter what
+            let imagesLoadedSuccessfully = false;
 
-app.UseForwardedHeaders();
+            try {
+                if (galleryImages.length === 0) return;
+                const count = galleryImages.length;
+                
+                const response = await fetch(API_BASE_URL + '/get-homepage-images/' + count, {
+                    method: 'GET',
+                    headers: { 'X-Custom-Auth-Key': CUSTOM_API_KEY }
+                });
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-app.UseHttpsRedirection();
-app.UseCors("StrictStaticSite");
+                if (!response.ok) throw new Error('Failed to fetch images');
+                const imagesData = await response.json(); 
+                
+                if (!imagesData || imagesData.length === 0) return;
 
-app.UseCookiePolicy(new CookiePolicyOptions
-{
-    MinimumSameSitePolicy = SameSiteMode.None,
-    Secure = CookieSecurePolicy.Always
-});
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-string foldername = "TaGea2026";
-
-// Helper method to safely build a cookie-free authenticated Graph Client using the custom account header identifier
-async funtion<GraphServiceClient?> GetAuthenticatedGraphClientAsync(HttpRequest request, ITokenAcquisition tokenAcquisition)
-{
-    if (!request.Headers.TryGetValue("X-Microsoft-Account-Id", out var accountId) || string.IsNullOrEmpty(accountId))
-    {
-        return null;
-    }
-
-    // Synthesize a minimal ClaimsPrincipal identity matching the structure MSAL uses inside Redis key mapping
-    var identity = new ClaimsIdentity(new[]
-    {
-        new Claim("http://schemas.microsoft.com/identity/claims/objectidentifier", accountId!),
-        new Claim("http://schemas.microsoft.com/identity/claims/tenantid", "9188040d-6c67-4c5b-b112-36a304b66dad") // Common personal account tenant fallback
-    }, CookieAuthenticationDefaults.AuthenticationScheme);
-
-    var principal = new ClaimsPrincipal(identity);
-    var scopes = new[] { "Files.ReadWrite" };
-
-    // Fetch the token manually out of Redis via the synthesized user principal profile context
-    string accessToken = await tokenAcquisition.GetAccessTokenForUserAsync(scopes, user: principal);
-
-    return new GraphServiceClient(new DelegateAuthenticationProvider((requestMessage) =>
-    {
-        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        return Task.CompletedTask;
-    }));
-}
-
-// Endpoints
-app.MapGet("/login", async (HttpContext context) =>
-{
-    await context.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme, new AuthenticationProperties
-    {
-        RedirectUri = "/login-success"
-    });
-});
-
-app.MapGet("/login-success", (HttpContext context) =>
-{
-    var userId = context.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value;
-    return Results.Ok($"Authentication successful! Copy this ID for your frontend: {userId}");
-});
-
-app.MapGet("/get-image-list", async (HttpRequest request, IConfiguration config, ITokenAcquisition tokenAcquisition, IWebHostEnvironment env) =>
-{
-    if (!env.IsDevelopment())
-    {
-        if (!request.Headers.TryGetValue("X-Custom-Auth-Key", out var extractedKey) || extractedKey != config["CustomApiKey"])
-            return Results.Unauthorized();
-    }
-    try
-    {
-        var graphClient = await GetAuthenticatedGraphClientAsync(request, tokenAcquisition);
-        if (graphClient == null) return Results.BadRequest("Missing or invalid background authentication data.");
-
-        var drive = await graphClient.Drives["root"].GetAsync();
-        var childrenResponse = await graphClient.Drives[drive.Id].Root.ItemWithPath(foldername).Children.GetAsync();
-        var fileNames = childrenResponse?.Value?.Select(item => item.Name).ToList();
-        return Results.Ok(fileNames);
-    }
-    catch (Exception ex) { return Results.Problem($"Failed: {ex.Message}"); }
-});
-
-app.MapGet("/download-all-images", async (HttpContext context, IConfiguration config, ITokenAcquisition tokenAcquisition, IWebHostEnvironment env) =>
-{
-    if (!env.IsDevelopment())
-    {
-        if (!context.Request.Headers.TryGetValue("X-Custom-Auth-Key", out var extractedKey) || extractedKey != config["CustomApiKey"])
-        {
-            context.Response.StatusCode = 401;
-            return;
-        }
-    }
-    try
-    {
-        var graphClient = await GetAuthenticatedGraphClientAsync(context.Request, tokenAcquisition);
-        if (graphClient == null) { context.Response.StatusCode = 400; return; }
-
-        var drive = await graphClient.Drives["root"].GetAsync();
-        var userDriveId = drive?.Id;
-        var childrenResponse = await graphClient.Drives[userDriveId].Root.ItemWithPath(foldername).Children.GetAsync();
-        var files = childrenResponse?.Value?.Where(i => i.Folder == null).ToList();
-        if (files == null || files.Count == 0)
-        {
-            context.Response.StatusCode = 404;
-            await context.Response.WriteAsync("No files found.");
-            return;
-        }
-
-        context.Response.ContentType = "application/zip";
-        context.Response.Headers.Append("Content-Disposition", "attachment; filename=\"images.zip\"");
-
-        using (var archive = new System.IO.Compression.ZipArchive(context.Response.Body, System.IO.Compression.ZipArchiveMode.Create))
-        {
-            foreach (var file in files)
-            {
-                if (file.Id == null || file.Name == null) continue;
-                var contentStream = await graphClient.Drives[userDriveId].Items[file.Id].Content.GetAsync();
-                if (contentStream != null)
-                {
-                    var zipEntry = archive.CreateEntry(file.Name);
-                    using var entryStream = zipEntry.Open();
-                    await contentStream.CopyToAsync(entryStream);
+                for (let i = 0; i < imagesData.length && i < galleryImages.length; i++) {
+                    const url = imagesData[i].downloadUrl || imagesData[i].DownloadUrl;
+                    if (url) {
+                        galleryImages[i].src = url;
+                    }
+                }
+                imagesLoadedSuccessfully = true;
+            } catch (error) {
+                console.error("Gallery Error:", error.message);
+            } finally {
+                // Force hide the curtain whether the fetch worked or completely exploded
+                console.log("Dropping loading curtain. Status success:", imagesLoadedSuccessfully);
+                if (loadingOverlay) { 
+                    loadingOverlay.classList.add('hidden'); 
                 }
             }
         }
-    }
-    catch (Exception ex)
-    {
-        if (!context.Response.HasStarted)
-        {
-            context.Response.StatusCode = 500;
-            await context.Response.WriteAsync($"Failed: {ex.Message}");
-        }
-    }
-});
 
-app.MapPost("/upload-images", async (HttpRequest request, IConfiguration config, ITokenAcquisition tokenAcquisition, IWebHostEnvironment env) =>
-{
-    if (!env.IsDevelopment())
-    {
-        if (!request.Headers.TryGetValue("X-Custom-Auth-Key", out var extractedKey) || extractedKey != config["CustomApiKey"])
-            return Results.Unauthorized();
-    }
-    try
-    {
-        if (!request.HasFormContentType) return Results.BadRequest("Invalid form content.");
-        var form = await request.ReadFormAsync();
-        var files = form.Files;
-        if (files.Count == 0) return Results.BadRequest("No files uploaded.");
-
-        var graphClient = await GetAuthenticatedGraphClientAsync(request, tokenAcquisition);
-        if (graphClient == null) return Results.BadRequest("Invalid authentication initialization data.");
-
-        var drive = await graphClient.Drives["root"].GetAsync();
-        var userDriveId = drive?.Id;
-        var uploadedFiles = new List<string>();
-
-        foreach (var file in files)
-        {
-            if (string.IsNullOrEmpty(file.FileName)) continue;
-            using var stream = file.OpenReadStream();
+        // Dynamic scaling script for the long gallery canvas
+        function autoScaleHome() {
+            const wrapper = document.getElementById('scaleWrapper');
+            const scaleRatio = window.innerWidth / 1920;
             
-            var uploadSessionRequestBody = new Microsoft.Graph.Drives.Item.Items.Item.CreateUploadSession.CreateUploadSessionPostRequestBody
-            {
-                Item = new Microsoft.Graph.Models.DriveItemUploadableProperties
-                {
-                    AdditionalData = new Dictionary<string, object> { { "@microsoft.graph.conflictBehavior", "replace" } }
-                }
-            };
-
-            var uploadSession = await graphClient.Drives[userDriveId].Root.ItemWithPath($"{foldername}/{file.FileName}").CreateUploadSession.PostAsync(uploadSessionRequestBody);
+            wrapper.style.transform = `scale(${scaleRatio})`;
             
-            int maxSliceSize = 4 * 320 * 1024; 
-            var fileUploadTask = new Microsoft.Graph.LargeFileUploadTask<Microsoft.Graph.Models.DriveItem>(uploadSession, stream, maxSliceSize, graphClient.RequestAdapter);
-            await fileUploadTask.UploadAsync();
-                
-            uploadedFiles.Add(file.FileName);
+            const calculatedHeight = 4113 * scaleRatio;
+            wrapper.style.height = `${calculatedHeight}px`;
+            document.body.style.height = `${calculatedHeight}px`;
         }
-        return Results.Ok(new { Message = "Files uploaded successfully", Files = uploadedFiles });
-    }
-    catch (Exception ex) { return Results.Problem($"Failed: {ex.Message}"); }
-}).WithName("UploadImages");
 
-app.MapGet("/get-homepage-images/{count}", async (int count, HttpRequest request, IConfiguration config, ITokenAcquisition tokenAcquisition, IWebHostEnvironment env) =>
-{
-    if (!env.IsDevelopment())
-    {
-        if (!request.Headers.TryGetValue("X-Custom-Auth-Key", out var extractedKey) || extractedKey != config["CustomApiKey"])
-            return Results.Unauthorized();
-    }
-    try
-    {
-        var graphClient = await GetAuthenticatedGraphClientAsync(request, tokenAcquisition);
-        if (graphClient == null) return Results.BadRequest("Invalid initialization metadata.");
-
-        var drive = await graphClient.Drives["root"].GetAsync();
-        var userDriveId = drive?.Id;
-        var childrenResponse = await graphClient.Drives[userDriveId].Root.ItemWithPath(foldername).Children.GetAsync();
-        var files = childrenResponse?.Value?.Where(i => i.Folder == null && i.Name != null).ToList();
-        if (files == null || files.Count == 0) return Results.Ok(new List<object>());
-
-        var random = new Random();
-        var randomImages = files.OrderBy(x => random.Next()).Take(count).Select(i => new 
-        { 
-            Name = i.Name, 
-            Id = i.Id,
-            DownloadUrl = i.AdditionalData != null && i.AdditionalData.ContainsKey("@microsoft.graph.downloadUrl")
-                ? i.AdditionalData["@microsoft.graph.downloadUrl"]?.ToString() 
-                : i.WebUrl
-        }).ToList();
-        return Results.Ok(randomImages);
-    }
-    catch (Exception ex) { return Results.Problem($"Failed: {ex.Message}"); }
-});
-
-app.Run();
+        window.addEventListener('load', autoScaleHome);
+        window.addEventListener('resize', autoScaleHome);
+        
+        autoScaleHome();
+        loadRandomImages();
+    </script>
+</body>
+</html>
