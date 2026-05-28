@@ -165,10 +165,14 @@
         // Fetch Gallery Images from C# Backend
         async function loadRandomImages() {
             const galleryImages = document.querySelectorAll('.gallery-img');
-            if (galleryImages.length === 0) return;
+            
+            // 🛡️ Fail-safe tracker to ensure curtain drops no matter what
+            let imagesLoadedSuccessfully = false;
 
             try {
+                if (galleryImages.length === 0) return;
                 const count = galleryImages.length;
+                
                 const response = await fetch(API_BASE_URL + '/get-homepage-images/' + count, {
                     method: 'GET',
                     headers: { 'X-Custom-Auth-Key': CUSTOM_API_KEY }
@@ -185,10 +189,15 @@
                         galleryImages[i].src = url;
                     }
                 }
+                imagesLoadedSuccessfully = true;
             } catch (error) {
                 console.error("Gallery Error:", error.message);
             } finally {
-                if (loadingOverlay) { loadingOverlay.classList.add('hidden'); }
+                // Force hide the curtain whether the fetch worked or completely exploded
+                console.log("Dropping loading curtain. Status success:", imagesLoadedSuccessfully);
+                if (loadingOverlay) { 
+                    loadingOverlay.classList.add('hidden'); 
+                }
             }
         }
 
