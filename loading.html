@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>web_2</title>
     <style>
-        /* Force the inner page to match the absolute full dimensions of the browser window */
         html, body { 
             margin: 0; 
             padding: 0; 
@@ -15,7 +14,7 @@
             height: 100vh;
         }
 
-        /* Fluid full-viewport wrapper */
+        /* Full viewport bounding container */
         .fullscreen-bg {
             width: 100vw;
             height: 100vh;
@@ -23,7 +22,7 @@
             overflow: hidden;
         }
 
-        /* Responsive Side Gradients - taking up exactly half the width dynamically */
+        /* Responsive Side Gradients matching the viewport boundaries */
         .gradient-left {
             width: 55vw;
             height: 110vh;
@@ -44,30 +43,24 @@
             background: linear-gradient(90deg, #3A7065 35%, #A9A73E 100%);
         }
 
-        /* Big background dinosaur scaled up to fill the whole screen canvas safely */
-        #backgroundImageLoop {
+        /* Forces both graphics to match 100% of screen height and width regardless of device */
+        #backgroundImageLoop, #loadingImage {
             position: absolute;
-            left: 50%;
-            top: 48%;
-            transform: translate(-50%, -50%);
-            width: auto;
-            height: 90vh; /* Takes up 90% of the screen height regardless of device */
-            max-width: 95vw;
-            object-fit: contain;
+            left: 0;
+            top: 0;
+            width: 100vw;   /* 100% of viewport width */
+            height: 100vh;  /* 100% of viewport height */
+            object-fit: fill; /* Stretches the image canvas directly to the screen edges */
+        }
+
+        /* Layers the background asset beneath the flashing text */
+        #backgroundImageLoop {
             z-index: 5;
         }
 
-        /* Flashing 'Es Lädt' text layered perfectly in the center */
+        /* Layers the text asset perfectly on top */
         #loadingImage {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
             z-index: 10;
-            width: 25vw; /* Scales proportionally with screen width */
-            max-width: 400px;
-            min-width: 280px;
-            height: auto;
         }
     </style>
 </head>
@@ -89,7 +82,6 @@
   
   let currentImageIsOne = true;
   
-  // Toggles text states every 500ms
   setInterval(() => {
     loadingImage.src = currentImageIsOne ? img2 : img1;
     currentImageIsOne = !currentImageIsOne;
