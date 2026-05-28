@@ -23,6 +23,12 @@
             background: white; 
             transition: opacity 0.5s ease, visibility 0.5s;
         }
+        #loadingOverlay.hidden {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            display: none !important; /* Forces the curtain to drop instantly */
+        }
     </style>
 </head>
 <body>
