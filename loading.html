@@ -43,20 +43,22 @@
             background: linear-gradient(90deg, #3A7065 35%, #A9A73E 100%);
         }
 
-        /* This wrapper holds your central assets. It is always pinned dead-center on the screen */
+        /* This wrapper holds your central assets. It is always pinned dead-center 
+           on the screen, regardless of whether the device is horizontal or vertical.
+        */
         #centerAssetContainer {
             position: absolute;
             left: 50%;
             top: 50%;
             width: 1920px;
             height: 1080px;
+            /* Anchors the center point of the 1920x1080 canvas to the center of the phone screen */
             transform-origin: center center; 
             z-index: 10;
             pointer-events: none;
         }
 
-        /* Removed #backgroundImageLoop selector reference */
-        #loadingImage {
+        #backgroundImageLoop, #loadingImage {
             position: absolute;
             left: 0;
             top: 0;
@@ -71,8 +73,7 @@
                 width: 100vw !important;
                 height: 100vh !important;
             }
-            /* Removed #backgroundImageLoop selector reference */
-            #loadingImage {
+            #backgroundImageLoop, #loadingImage {
                 width: 100vw !important;
                 height: 100vh !important;
                 object-fit: contain !important;
@@ -87,6 +88,7 @@
     <div class="gradient-right"></div>
 
     <div id="centerAssetContainer">
+        <img id="backgroundImageLoop" src="assets/images/Komponente_8.png" alt="Background Graphic" />
         <img id="loadingImage" src="assets/images/web2_loading2 (1).png" alt="Loading..." />
     </div>
 </div>
@@ -112,10 +114,16 @@
           return;
       }
 
+      // Calculate individual scale paths for width and height
       const scaleX = window.innerWidth / 1920;
       const scaleY = window.innerHeight / 1080;
+      
+      // CHOOSE THE SAFEST FIT: 
+      // On desktop, it scales normally. On portrait mobile, it uses the width limit 
+      // so your graphics don't get squished or distorted out of proportion.
       const optimalScale = Math.min(scaleX, scaleY);
       
+      // Centers the scaled container perfectly inside the screen viewport mask
       target.style.transform = `translate(-50%, -50%) scale(${optimalScale})`;
   }
 
