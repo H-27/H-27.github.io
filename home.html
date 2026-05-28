@@ -16,7 +16,7 @@
             height: 100vh;
             z-index: 9999;
             border: none;
-            background: white; /* Kept solid white to mask the background */
+            background: white; 
             transition: opacity 0.5s ease, visibility 0.5s;
         }
         #loadingOverlay.hidden {
@@ -25,7 +25,7 @@
             pointer-events: none;
         }
 
-        /* Hover effects for interactive image components */
+        /* Hover and active effects for interactive elements */
         .back-link, #uploadBtn, #downloadBtn {
             transition: transform 0.3s ease, filter 0.3s ease;
             cursor: pointer;
@@ -34,7 +34,6 @@
             transform: scale(1.04);
             filter: drop-shadow(0px 10px 25px rgba(0,0,0,0.25));
         }
-        /* Active press effect for buttons */
         #uploadBtn:active, #downloadBtn:active {
             transform: scale(0.98);
         }
@@ -44,7 +43,7 @@
 
 <iframe id="loadingOverlay" src="loading.html"></iframe>
 
-<div id="scaleWrapper" style="transform-origin: top left; width: 1920px;">
+<div id="scaleWrapper" style="transform-origin: top left; width: 1920px; overflow: hidden;">
 
     <div style="width: 1920px; height: 4113px; position: relative; background: white; overflow: hidden">
       <div style="width: 1011.98px; height: 4376.05px; left: -46.48px; top: -92.02px; position: absolute; background: linear-gradient(90deg, #3A7065 35%, #A9A73E 100%)"></div>
@@ -88,7 +87,6 @@
   const downloadBtn = document.getElementById('downloadBtn');
   const loadingOverlay = document.getElementById('loadingOverlay');
 
-  // Trigger file selection window
   uploadBtn.addEventListener('click', () => { fileUploadInput.click(); });
 
   // Handle Image Upload
@@ -96,7 +94,6 @@
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    // Show loading screen during upload process
     if (loadingOverlay) loadingOverlay.classList.remove('hidden');
 
     const formData = new FormData();
@@ -105,16 +102,16 @@
     try {
         const response = await fetch(`${API_BASE_URL}/upload-images`, {
             method: 'POST',
-            credentials: 'include',
+            // FIXED: Removed credentials: 'include' to allow mobile cross-domain parsing
             headers: { 'X-Custom-Auth-Key': CUSTOM_API_KEY },
             body: formData
         });
         if (!response.ok) throw new Error('Upload failed');
         alert("Upload successful!");
-        await loadRandomImages(); // Re-fetch gallery & hides screen inside this method
+        await loadRandomImages(); 
     } catch (error) {
         alert('Upload failed.');
-        if (loadingOverlay) loadingOverlay.classList.add('hidden'); // Fallback hide
+        if (loadingOverlay) loadingOverlay.classList.add('hidden'); 
     } finally { 
         fileUploadInput.value = ''; 
     }
@@ -122,7 +119,6 @@
 
   // Handle ZIP Generation and Download
   downloadBtn.addEventListener('click', async () => {
-    // 1. Instantly show the loading overlay while the backend works
     if (loadingOverlay) {
         loadingOverlay.classList.remove('hidden');
     }
@@ -130,7 +126,7 @@
     try {
         const response = await fetch(`${API_BASE_URL}/download-all-images`, {
             method: 'GET',
-            credentials: 'include',
+            // FIXED: Removed credentials: 'include' to allow mobile cross-domain parsing
             headers: { 'X-Custom-Auth-Key': CUSTOM_API_KEY }
         });
         if (!response.ok) throw new Error('Download failed');
@@ -147,7 +143,6 @@
     } catch (error) {
         alert('Download failed.');
     } finally {
-        // 2. Hide the loading overlay immediately once the process finishes or fails
         if (loadingOverlay) {
             loadingOverlay.classList.add('hidden');
         }
@@ -163,7 +158,7 @@
         const count = galleryImages.length;
         const response = await fetch(API_BASE_URL + '/get-homepage-images/' + count, {
             method: 'GET',
-            credentials: 'include',
+            // FIXED: Removed credentials: 'include' to pass third-party mobile layout blocks
             headers: { 'X-Custom-Auth-Key': CUSTOM_API_KEY }
         });
 
@@ -185,28 +180,22 @@
     }
   }
 
-  // 2. Dynamic scaling script for the long gallery canvas
+  // Dynamic scaling script for the long gallery canvas
   function autoScaleHome() {
     const wrapper = document.getElementById('scaleWrapper');
-
-    // Detects the exact width scaling threshold of the device glass
     const scaleRatio = window.innerWidth / 1920;
       
     wrapper.style.transform = `scale(${scaleRatio})`;
       
-    // Calculate dynamic canvas depth footprint
     const calculatedHeight = 4113 * scaleRatio;
     wrapper.style.height = `${calculatedHeight}px`;
     document.body.style.height = `${calculatedHeight}px`;
-    }
+  }
 
   window.addEventListener('load', autoScaleHome);
   window.addEventListener('resize', autoScaleHome);
   
-  // Triggers immediate viewport calculations upon arrival
   autoScaleHome();
-  
-  // Your existing loadRandomImages() call remains here...
   loadRandomImages();
 </script>
 </body>
