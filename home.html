@@ -9,20 +9,17 @@
         
         /* Opaque solid mask that completely hides the gallery underneath */
         #loadingOverlay {
-            position: fixed;
+            position: fixed;   /* Keeps it locked to the screen, not the page content */
             top: 0;
             left: 0;
+            width: 100% !important;  /* Forces it to ignore container restrictions */
+            height: 100% !important; /* Forces it to ignore container restrictions */
             width: 100vw;
             height: 100vh;
-            z-index: 9999;
+            z-index: 99999;    /* Maximize z-index to stay on top of everything */
             border: none;
-            background: white; /* Kept solid white to mask the background */
+            background: white; 
             transition: opacity 0.5s ease, visibility 0.5s;
-        }
-        #loadingOverlay.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
         }
     </style>
 </head>
