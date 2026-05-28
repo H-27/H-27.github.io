@@ -9,6 +9,7 @@
             margin: 0; 
             padding: 0; 
             background-color: white;
+            overflow: hidden; /* Prevents scrollbars during mobile scaling */
         }
         /* Adds a subtle zoom effect when hovering over the interactive Komponente 7 */
         .component-link {
@@ -22,20 +23,37 @@
     </style>
 </head>
 <body>
-<div style="width: 1920px; height: 1080px; position: relative; background: white; overflow: hidden">
-  <!-- Left Gradient -->
-  <div style="width: 1011.98px; height: 1080px; left: -51.98px; top: 0px; position: absolute; background: linear-gradient(90deg, #3A7065 35%, #A9A73E 100%)"></div>
-  
-  <!-- Right Gradient -->
-  <div style="width: 1011.98px; height: 1080px; left: 1960.98px; top: 1080px; position: absolute; transform: rotate(180deg); transform-origin: top left; background: linear-gradient(90deg, #3A7065 35%, #A9A73E 100%)"></div>
-  
-  <!-- Logo (Now decorative, clicking it does nothing) -->
-  <img style="width: 1128px; height: 995px; left: 356px; top: 43px; position: absolute; pointer-events: none;" src="assets/images/Logo.png" alt="Logo" />
-  
-  <!-- Interactive Komponente 7 Link to Home Page -->
-  <a href="home.html" style="position: absolute; left: 250.71px; top: 650.52px; display: block; width: 1338.57px; height: 246.48px; z-index: 10;" class="component-link">
-    <img style="width: 100%; height: 100%;" src="assets/images/Komponente_7.png" alt="Navigate to Home" />
-  </a>
+
+<div id="scaleWrapper" style="transform-origin: top left; width: 1920px;">
+
+    <div style="width: 1920px; height: 1080px; position: relative; background: white; overflow: hidden">
+      <div style="width: 1011.98px; height: 1080px; left: -51.98px; top: 0px; position: absolute; background: linear-gradient(90deg, #3A7065 35%, #A9A73E 100%)"></div>
+      
+      <div style="width: 1011.98px; height: 1080px; left: 1960.98px; top: 1080px; position: absolute; transform: rotate(180deg); transform-origin: top left; background: linear-gradient(90deg, #3A7065 35%, #A9A73E 100%)"></div>
+      
+      <img style="width: 1128px; height: 995px; left: 356px; top: 43px; position: absolute; pointer-events: none;" src="assets/images/Logo.png" alt="Logo" />
+      
+      <a href="home.html" style="position: absolute; left: 250.71px; top: 650.52px; display: block; width: 1338.57px; height: 246.48px; z-index: 10;" class="component-link">
+        <img style="width: 100%; height: 100%;" src="assets/images/Komponente_7.png" alt="Navigate to Home" />
+      </a>
+    </div>
+
 </div>
+
+<script>
+    function autoScaleIndex() {
+        const wrapper = document.getElementById('scaleWrapper');
+        const scaleRatio = window.innerWidth / 1920;
+        
+        // Dynamically scale the container matching the current screen width
+        wrapper.style.transform = `scale(${scaleRatio})`;
+        
+        // Match the container layout height cleanly
+        document.body.style.height = `${1080 * scaleRatio}px`;
+    }
+
+    window.addEventListener('load', autoScaleIndex);
+    window.addEventListener('resize', autoScaleIndex);
+</script>
 </body>
 </html>

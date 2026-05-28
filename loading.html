@@ -10,47 +10,45 @@
             padding: 0; 
             background: white; 
             overflow: hidden;
-            width: 100vw;
-            height: 100vh;
         }
 
-        /* Full viewport bounding container */
+        /* 1920x1080 Bounding container matching index asset structures */
         .fullscreen-bg {
-            width: 100vw;
-            height: 100vh;
+            width: 1920px;
+            height: 1080px;
             position: relative;
             overflow: hidden;
         }
 
-        /* Responsive Side Gradients matching the viewport boundaries */
+        /* Side Gradients adapted to match the fixed resolution coordinates */
         .gradient-left {
-            width: 55vw;
-            height: 110vh;
-            left: -5vw;
-            top: -5vh;
+            width: 1056px; /* 55% of 1920px */
+            height: 1188px; /* 110% of 1080px */
+            left: -96px;
+            top: -54px;
             position: absolute;
             background: linear-gradient(90deg, #3A7065 35%, #A9A73E 100%);
         }
 
         .gradient-right {
-            width: 55vw;
-            height: 110vh;
-            right: -5vw;
-            bottom: -5vh;
+            width: 1056px;
+            height: 1188px;
+            right: -96px;
+            bottom: -54px;
             position: absolute;
             transform: rotate(180deg);
             transform-origin: center;
             background: linear-gradient(90deg, #3A7065 35%, #A9A73E 100%);
         }
 
-        /* Forces both graphics to match 100% of screen height and width regardless of device */
+        /* Forces both graphics to pin cleanly inside the canvas layout */
         #backgroundImageLoop, #loadingImage {
             position: absolute;
             left: 0;
             top: 0;
-            width: 100vw;   /* 100% of viewport width */
-            height: 100vh;  /* 100% of viewport height */
-            object-fit: fill; /* Stretches the image canvas directly to the screen edges */
+            width: 1920px;
+            height: 1080px;
+            object-fit: fill;
         }
 
         /* Layers the background asset beneath the flashing text */
@@ -66,13 +64,17 @@
 </head>
 <body>
 
-<div class="fullscreen-bg">
-  <div class="gradient-left"></div>
-  <div class="gradient-right"></div>
+<div id="scaleWrapper" style="transform-origin: top left; width: 1920px;">
 
-  <img id="backgroundImageLoop" src="assets/images/Komponente_8.png" alt="Background Graphic" />
-  
-  <img id="loadingImage" src="assets/images/web2_loading2 (1).png" alt="Loading..." />
+    <div class="fullscreen-bg">
+      <div class="gradient-left"></div>
+      <div class="gradient-right"></div>
+
+      <img id="backgroundImageLoop" src="assets/images/Komponente_8.png" alt="Background Graphic" />
+      
+      <img id="loadingImage" src="assets/images/web2_loading2 (1).png" alt="Loading..." />
+    </div>
+
 </div>
 
 <script>
@@ -82,10 +84,23 @@
   
   let currentImageIsOne = true;
   
+  // Flash text loop every 500ms
   setInterval(() => {
     loadingImage.src = currentImageIsOne ? img2 : img1;
     currentImageIsOne = !currentImageIsOne;
   }, 500);
+
+  // 2. Scale handler targeting the loading layout frame
+  function autoScaleLoading() {
+      const wrapper = document.getElementById('scaleWrapper');
+      const scaleRatio = window.innerWidth / 1920;
+      
+      wrapper.style.transform = `scale(${scaleRatio})`;
+      document.body.style.height = `${1080 * scaleRatio}px`;
+  }
+
+  window.addEventListener('load', autoScaleLoading);
+  window.addEventListener('resize', autoScaleLoading);
 </script>
 </body>
 </html>
