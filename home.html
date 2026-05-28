@@ -38,48 +38,6 @@
         #uploadBtn:active, #downloadBtn:active {
             transform: scale(0.98);
         }
-
-        /* Mobile overrides */
-        @media (max-width: 768px) {
-            #scaleWrapper > div {
-                width: 100% !important;
-                height: auto !important;
-                display: flex !important;
-                flex-direction: column !important;
-                align-items: center !important;
-                background: linear-gradient(180deg, #3A7065 0%, #A9A73E 100%) !important;
-                padding: 3rem 0 !important;
-            }
-            #scaleWrapper > div > div { display: none !important; } /* Hide absolute gradients */
-            
-            #scaleWrapper > div > img[src="assets/images/Komponente_7.png"] {
-                position: static !important; width: 80% !important; height: auto !important; margin-bottom: 2rem !important;
-            }
-            #scaleWrapper > div > img[src="assets/images/2026.png"] {
-                position: static !important; width: 50% !important; height: auto !important; margin-bottom: 3rem !important;
-            }
-            
-            #uploadBtn {
-                position: static !important; width: 85% !important; height: auto !important; 
-                border-radius: 40px !important; margin-bottom: 3rem !important; padding: 2rem !important; box-sizing: border-box !important;
-            }
-            #uploadBtn img { width: 100% !important; height: auto !important; }
-            
-            .gallery-img {
-                position: static !important; width: 90% !important; height: auto !important; 
-                aspect-ratio: 1.5 !important; transform: none !important; margin-bottom: 1.5rem !important;
-            }
-            
-            #downloadBtn {
-                position: static !important; width: 85% !important; height: auto !important; 
-                border-radius: 40px !important; margin: 3rem 0 2rem 0 !important; padding: 2rem !important; box-sizing: border-box !important;
-            }
-            #downloadBtn img { width: 100% !important; height: auto !important; }
-            
-            .back-link {
-                position: static !important; width: 60% !important; height: auto !important; margin-top: 1rem !important;
-            }
-        }
     </style>
 </head>
 <body>
@@ -230,14 +188,6 @@
   // 2. Dynamic scaling script for the long gallery canvas
   function autoScaleHome() {
     const wrapper = document.getElementById('scaleWrapper');
-
-    if (window.innerWidth <= 768) {
-        wrapper.style.transform = 'none';
-        wrapper.style.width = '100%';
-        wrapper.style.height = 'auto';
-        document.body.style.height = 'auto';
-        return;
-    }
 
     // Detects the exact width scaling threshold of the device glass
     const scaleRatio = window.innerWidth / 1920;
