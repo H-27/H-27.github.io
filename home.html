@@ -94,137 +94,152 @@
     </div>
 
     <script>
-        const API_BASE_URL = 'https://personal-onedrive-backend.onrender.com';
-        const CUSTOM_API_KEY = 'OV52i_5c3k2ocNbm9oGkeg';
-        const MS_ACCOUNT_ID = '00000000-0000-0000-312a-04c9a0d7253b';
+       const API_BASE_URL = 'https://personal-onedrive-backend.onrender.com';
+const CUSTOM_API_KEY = 'OV52i_5c3k2ocNbm9oGkeg';
 
-        const uploadBtn = document.getElementById('uploadBtn');
-        const fileUploadInput = document.getElementById('fileUploadInput');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const loadingOverlay = document.getElementById('loadingOverlay');
+// IMPORTANT: Replace this with the real userId returned by /login-success
+const MS_ACCOUNT_ID = '00000000-0000-0000-312a-04c9a0d7253b';
 
-        uploadBtn.addEventListener('click', () => { fileUploadInput.click(); });
+const uploadBtn = document.getElementById('uploadBtn');
+const fileUploadInput = document.getElementById('fileUploadInput');
+const downloadBtn = document.getElementById('downloadBtn');
+const loadingOverlay = document.getElementById('loadingOverlay');
 
-        // Handle Image Upload
-        fileUploadInput.addEventListener('change', async (event) => {
-            const files = event.target.files;
-            if (!files || files.length === 0) return;
+uploadBtn.addEventListener('click', () => { fileUploadInput.click(); });
 
-            if (loadingOverlay) loadingOverlay.classList.remove('hidden');
+// -------------------------
+// Handle Image Upload
+// -------------------------
+fileUploadInput.addEventListener('change', async (event) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
-            const formData = new FormData();
-            for (let i = 0; i < files.length; i++) { formData.append('files', files[i]); }
+    if (loadingOverlay) loadingOverlay.classList.remove('hidden');
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/upload-images?cb=${new Date().getTime()}`, {
-                    method: 'POST',
-                    headers: { 
-                        'X-Custom-Auth-Key': CUSTOM_API_KEY,
-                        'X-Microsoft-Account-Id': MS_ACCOUNT_ID
-                    },
-                    body: formData
-                });
-                if (!response.ok) throw new Error('Upload failed');
-                alert("Upload successful!");
-                await loadRandomImages(); 
-            } catch (error) {
-                alert('Upload failed.');
-                if (loadingOverlay) loadingOverlay.classList.add('hidden'); 
-            } finally { 
-                fileUploadInput.value = ''; 
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/upload-images?cb=${Date.now()}`, {
+            method: 'POST',
+            headers: { 
+                'X-Custom-Auth-Key': CUSTOM_API_KEY,
+                'X-Microsoft-Account-Id': MS_ACCOUNT_ID
+            },
+            body: formData
+        });
+
+        if (!response.ok) throw new Error('Upload failed');
+
+        alert("Upload successful!");
+        await loadRandomImages();
+
+    } catch (error) {
+        alert('Upload failed.');
+    } finally {
+        if (loadingOverlay) loadingOverlay.classList.add('hidden');
+        fileUploadInput.value = '';
+    }
+});
+
+// -------------------------
+// Handle ZIP Download
+// -------------------------
+downloadBtn.addEventListener('click', async () => {
+    if (loadingOverlay) loadingOverlay.classList.remove('hidden');
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/download-all-images?cb=${Date.now()}`, {
+            method: 'GET',
+            headers: { 
+                'X-Custom-Auth-Key': CUSTOM_API_KEY,
+                'X-Microsoft-Account-Id': MS_ACCOUNT_ID
             }
         });
 
-        // Handle ZIP Generation and Download
-        downloadBtn.addEventListener('click', async () => {
-            if (loadingOverlay) {
-                loadingOverlay.classList.remove('hidden');
-            }
+        if (!response.ok) throw new Error('Download failed');
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/download-all-images?cb=${new Date().getTime()}`, {
-                    method: 'GET',
-                    headers: { 
-                        'X-Custom-Auth-Key': CUSTOM_API_KEY,
-                        'X-Microsoft-Account-Id': MS_ACCOUNT_ID
-                    }
-                });
-                if (!response.ok) throw new Error('Download failed');
-                
-                const blob = await response.blob();
-                const downloadUrl = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = downloadUrl;
-                a.download = 'images.zip';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                window.URL.revokeObjectURL(downloadUrl);
-            } catch (error) {
-                alert('Download failed.');
-            } finally {
-                if (loadingOverlay) {
-                    loadingOverlay.classList.add('hidden');
-                }
+        const blob = await response.blob();
+        const downloadUrl = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = 'images.zip';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        URL.revokeObjectURL(downloadUrl);
+
+    } catch (error) {
+        alert('Download failed.');
+    } finally {
+        if (loadingOverlay) loadingOverlay.classList.add('hidden');
+    }
+});
+
+// -------------------------
+// Load Random Homepage Images
+// -------------------------
+async function loadRandomImages() {
+    const galleryImages = document.querySelectorAll('.gallery-img');
+    let imagesLoadedSuccessfully = false;
+
+    try {
+        if (galleryImages.length === 0) return;
+
+        const count = galleryImages.length;
+
+        const response = await fetch(`${API_BASE_URL}/get-homepage-images/${count}?cb=${Date.now()}`, {
+            method: 'GET',
+            headers: { 
+                'X-Custom-Auth-Key': CUSTOM_API_KEY,
+                'X-Microsoft-Account-Id': MS_ACCOUNT_ID
             }
         });
 
-        // Fetch Gallery Images from C# Backend
-        async function loadRandomImages() {
-            const galleryImages = document.querySelectorAll('.gallery-img');
-            let imagesLoadedSuccessfully = false;
+        if (!response.ok) throw new Error('Failed to fetch images');
 
-            try {
-                if (galleryImages.length === 0) return;
-                const count = galleryImages.length;
-                
-                const response = await fetch(`${API_BASE_URL}/get-homepage-images/${count}?cb=${new Date().getTime()}`, {
-                    method: 'GET',
-                    headers: { 
-                        'X-Custom-Auth-Key': CUSTOM_API_KEY,
-                        'X-Microsoft-Account-Id': MS_ACCOUNT_ID
-                    }
-                });
+        const imagesData = await response.json();
+        if (!imagesData || imagesData.length === 0) return;
 
-                if (!response.ok) throw new Error('Failed to fetch images');
-                const imagesData = await response.json(); 
-                
-                if (!imagesData || imagesData.length === 0) return;
-
-                for (let i = 0; i < imagesData.length && i < galleryImages.length; i++) {
-                    const url = imagesData[i].downloadUrl || imagesData[i].DownloadUrl;
-                    if (url) {
-                        galleryImages[i].src = url;
-                    }
-                }
-                imagesLoadedSuccessfully = true;
-            } catch (error) {
-                console.error("Gallery Error:", error.message);
-            } finally {
-                console.log("Dropping loading curtain. Status success:", imagesLoadedSuccessfully);
-                if (loadingOverlay) { 
-                    loadingOverlay.classList.add('hidden'); 
-                }
-            }
+        for (let i = 0; i < imagesData.length && i < galleryImages.length; i++) {
+            const url = imagesData[i].downloadUrl || imagesData[i].DownloadUrl;
+            if (url) galleryImages[i].src = url;
         }
 
-        // Dynamic scaling script for the long gallery canvas
-        function autoScaleHome() {
-            const wrapper = document.getElementById('scaleWrapper');
-            const scaleRatio = window.innerWidth / 1920;
-            
-            wrapper.style.transform = `scale(${scaleRatio})`;
-            
-            const calculatedHeight = 4113 * scaleRatio;
-            wrapper.style.height = `${calculatedHeight}px`;
-            document.body.style.height = `${calculatedHeight}px`;
-        }
+        imagesLoadedSuccessfully = true;
 
-        window.addEventListener('load', autoScaleHome);
-        window.addEventListener('resize', autoScaleHome);
-        
-        autoScaleHome();
-        loadRandomImages();
+    } catch (error) {
+        console.error("Gallery Error:", error.message);
+    } finally {
+        console.log("Dropping loading curtain. Status success:", imagesLoadedSuccessfully);
+        if (loadingOverlay) loadingOverlay.classList.add('hidden');
+    }
+}
+
+// -------------------------
+// Scaling Script
+// -------------------------
+function autoScaleHome() {
+    const wrapper = document.getElementById('scaleWrapper');
+    const scaleRatio = window.innerWidth / 1920;
+
+    wrapper.style.transform = `scale(${scaleRatio})`;
+
+    const calculatedHeight = 4113 * scaleRatio;
+    wrapper.style.height = `${calculatedHeight}px`;
+    document.body.style.height = `${calculatedHeight}px`;
+}
+
+window.addEventListener('load', autoScaleHome);
+window.addEventListener('resize', autoScaleHome);
+
+autoScaleHome();
+loadRandomImages();
+
     </script>
 </body>
 </html>
